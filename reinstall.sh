@@ -84,6 +84,21 @@ error_and_exit() {
 }
 
 curl() {
+    local args="$@"
+    local url
+    local ret
+
+    # 检查参数中是否包含 -Lo
+    if echo "$args" | grep -q '\-Lo'; then
+        # 替换 -Lo 为 -O
+        args=$(echo "$args" | sed 's/-Lo/-O/')
+        # 提取 URL
+        url=$(echo "$args" | grep -o 'http[^ ]*')
+        echo "Using wget for: $url" >&2
+        wget $args
+        return $?
+    fi
+    
     # 添加 -f, --fail，不然 404 退出码也为0
     # 32位 cygwin 已停止更新，证书可能有问题，先添加 --insecure
     # centos 7 curl 不支持 --retry-connrefused --retry-all-errors
